@@ -88,9 +88,9 @@ export default class PopMapFilter extends Overlay.PopView {
     constructor(props) {
         super(props);
         Object.assign(this.state, {
-            filterStatus: 0,
-            filterLedType: 0,
-            filterDistance: 0,
+            filterStatus: props.status,
+            filterLedType: props.type,
+            filterDistance: props.dist,
         });
 
     }
@@ -160,7 +160,24 @@ export default class PopMapFilter extends Overlay.PopView {
         }else if (info.dist != undefined) {
             this.setState({filterDistance:info.dist});
         }else if (info.btn != undefined) {
-            
+            if (info.btn == 0) {
+                this.props.onDone && this.props.onDone(
+                    {
+                        status: 0,
+                        type: 0,
+                        dist: 0
+                    }
+                );
+            }else if (info.btn == 1) {
+                this.props.onDone && this.props.onDone(
+                    {
+                        status: this.state.filterStatus,
+                        type: this.state.filterLedType,
+                        dist: this.state.filterDistance
+                    }
+                );
+            }
+            this.close();
         }
     };
 

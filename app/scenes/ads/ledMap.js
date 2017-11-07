@@ -66,6 +66,11 @@ class LedMap extends NavigationPage {
             gotMyLoc:false,
             markersGps: [],
             selectedIds: [],
+
+            // filter
+            filterStatus: 0,
+            filterType: 0,
+            filterDist: 0,
         };
         //this.onMapPress = this.onMapPress.bind(this);
     }
@@ -148,7 +153,7 @@ class LedMap extends NavigationPage {
             <NavigationBar.LinkButton
                 title={"筛选"}
                 onPress={() => {
-                    PopMapFilter.show();
+                    PopMapFilter.show({status:this.state.filterStatus, type:this.state.filterType, dist:this.state.filterDist}, this._onDoneFilter);
                 }}
             />
         );
@@ -215,6 +220,10 @@ class LedMap extends NavigationPage {
             Actions.pop();
         }
     }
+
+    _onDoneFilter = (data) => {
+
+    };
 }
 
 
