@@ -3,7 +3,7 @@ import React from 'react';
 import {
     View, Text, StyleSheet, Dimensions,
     KeyboardAvoidingView, ScrollView, TextInput, TouchableOpacity, Keyboard,
-    Image, Vibration,
+    Image, Vibration, InteractionManager
 } from "react-native";
 import {Navigator} from 'react-native-deprecated-custom-components';
 import {Scene, Router, Actions, ActionConst} from "react-native-router-flux";
@@ -93,29 +93,32 @@ class LedMap extends NavigationPage {
     //}
 
     componentWillMount() {
-        PopAlert.showLoadingView("定位中");
-        Utils.getLocation((loc)=>{
-            PopAlert.stopLoadingView();
-            if (loc && loc.lat && loc.lng) {
-                this.setState({region:{
-                    latitude: loc.lat,
-                    longitude: loc.lng,
-                    latitudeDelta: LATITUDE_DELTA,
-                    longitudeDelta: LONGITUDE_DELTA,
-                }, gotMyLoc:true});
-            }else{
-                this.setState({region:{
-                    latitude: LATITUDE,
-                    longitude: LONGITUDE,
-                    latitudeDelta: LATITUDE_DELTA,
-                    longitudeDelta: LONGITUDE_DELTA,
-                }, gotMyLoc:true});
-            }
-        });
     }
 
     componentDidMount() {
-        this._loadFixDevices();
+        let thiz = this;
+        InteractionManager.runAfterInteractions(() => {
+            PopAlert.showLoadingView("定位中");
+            Utils.getLocation((loc)=>{
+                PopAlert.stopLoadingView();
+                if (loc && loc.lat && loc.lng) {
+                    thiz.setState({region:{
+                        latitude: loc.lat,
+                        longitude: loc.lng,
+                        latitudeDelta: LATITUDE_DELTA,
+                        longitudeDelta: LONGITUDE_DELTA,
+                    }, gotMyLoc:true});
+                }else{
+                    thiz.setState({region:{
+                        latitude: LATITUDE,
+                        longitude: LONGITUDE,
+                        latitudeDelta: LATITUDE_DELTA,
+                        longitudeDelta: LONGITUDE_DELTA,
+                    }, gotMyLoc:true});
+                }
+            });
+            thiz._loadFixDevices();
+        });
     }
 
     componentWillUnmount() {
