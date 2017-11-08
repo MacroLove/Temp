@@ -37,7 +37,7 @@ import LedMapPage from './ledMap';
 import PTRListView, {RefreshState} from '../../widgets/PTRListView';
 import ExpanableList from '../../widgets/ExpanableList';
 
-import Utils from '../../Utils/Utils';
+import {Utils, GPSUtils} from '../../Utils/Utils';
 import HttpApi from "../../network/HttpApi";
 import * as Apis from '../../actions/apis';
 import {bindActionCreators} from 'redux';

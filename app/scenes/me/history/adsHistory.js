@@ -17,7 +17,7 @@ import SearchInput from "../../../widgets/SearchInput/SearchInput";
 import PTRListView, {RefreshState} from '../../../widgets/PTRListView';
 import HttpApi from "../../../network/HttpApi";
 import PopAlert from "../../../widgets/PopAlertView";
-import Utils from '../../../Utils/Utils';
+import {Utils, GPSUtils} from '../../../Utils/Utils';
 import {
     AdType_Area, AdType_AutoText, AdType_Image, AdType_Text, AdType_Time, AdType_TimeCountDown,
     AdType_Weather

@@ -16,7 +16,7 @@ import {
     Label,
     ListRow,
     TeaNavigator,
-
+    Toast,
     Theme,
 } from 'teaset';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-aware-scrollview';
@@ -24,7 +24,7 @@ import {COLOR_NAV_BG} from "../../constants/Colors";
 import MapView from 'react-native-maps';
 import HttpApi from "../../network/HttpApi";
 import PopAlert from "../../widgets/PopAlertView";
-import Utils from '../../Utils/Utils';
+import {Utils, GPSUtils} from '../../Utils/Utils';
 import PopMapFilter from "./xyz/PopMapFiler";
 
 let ScreenHeight = Dimensions.get('window').height;
@@ -56,6 +56,7 @@ class LedMap extends NavigationPage {
     constructor(props) {
         super(props);
 
+        this.isUnmounted = false;
         this.state = {
             region: {
                 latitude: LATITUDE,
@@ -64,8 +65,12 @@ class LedMap extends NavigationPage {
                 longitudeDelta: LONGITUDE_DELTA,
             },
             gotMyLoc:false,
-            markersGps: [],
             selectedIds: [],
+
+            datasFixed: [],
+            datasGps: [],
+            markersGps: [],
+            markersFixed: [],
 
             // filter
             filterStatus: 0,
@@ -110,17 +115,33 @@ class LedMap extends NavigationPage {
     }
 
     componentDidMount() {
-        HttpApi.getGpsDevices({token:this.props.userInfo.token}, (resp, error)=>{
+        this._loadFixDevices();
+    }
+
+    componentWillUnmount() {
+        this.isUnmounted = true;
+        clearTimeout(this.timer30 || 0);
+    }
+
+    // id_dev,  info,   lat, lon, state, title, speed, fleet, driver, mobile, alarm
+    _loadGpsDevices = ()=> {
+        let thiz = this;
+        HttpApi.getGpsDevices({token:thiz.props.userInfo.token}, (resp, error)=>{
             if (error) {
-                PopAlert.showAlertView("错误", error+"");
+                //PopAlert.showAlertView("错误", error+"");
+                Toast.fail(""+error);
             }else{
-                console.log(resp);
-                if (resp) {
+                //console.log(resp);
+                if (Utils.typeOf(resp, "Array")) {
                     let arr = dic_.valuesIn(resp).map(function (o) {
                         let gd = Utils.gpsToGaodeJS(parseFloat(o.lat), parseFloat(o.lon));
+                        o.coordinate = {
+                            latitude: gd.lat,
+                            longitude: gd.lon,
+                        };
                         return {
-                            title: o.info,
-                            key: o.id,
+                            title: o.title,
+                            key: o.id_dev,
                             coordinate:{
                                 latitude: gd.lat,
                                 longitude: gd.lon,
@@ -128,16 +149,102 @@ class LedMap extends NavigationPage {
                         };
                     });
                     if (arr && arr.length > 0) {
-                        this.setState({markersGps:arr});
+                        thiz.state.datasGps =resp;
+                        thiz._filterMarkers(thiz.state.datasGps);
                     }
                 }
             }
+            if (!thiz.isUnmounted) {
+                thiz.timer30 = setTimeout(()=>thiz._loadGpsDevices(), 30000);
+            }
         });
-    }
 
-    componentWillUnmount() {
+    };
 
-    }
+    // id_dev,  info,   lat, lon, state, title
+    _loadFixDevices = ()=>{
+        let thiz = this;
+        HttpApi.getFixedDevices({token:this.props.userInfo.token}, (resp, error)=>{
+            if (error) {
+                //PopAlert.showAlertView("错误", error+"");
+                Toast.fail(""+error);
+            }else{
+                //console.log(resp);
+                if (Utils.typeOf(resp, "Array")) {
+                    let arr = dic_.valuesIn(resp).map(function (o) {
+                        let gd = Utils.gpsToGaodeJS(parseFloat(o.lat), parseFloat(o.lon));
+                        o.coordinate = {
+                            latitude: gd.lat,
+                            longitude: gd.lon,
+                        };
+                        return {
+                            title: o.title,
+                            key: o.id_dev,
+                            coordinate:{
+                                latitude: gd.lat,
+                                longitude: gd.lon,
+                            },
+                        };
+                    });
+                    if (arr && arr.length > 0) {
+                        this.state.datasFixed = resp;
+                        thiz._filterMarkers(thiz.state.datasFixed);
+                    }
+                }
+            }
+            thiz._loadGpsDevices();
+        });
+    };
+
+    _filterMarkers = (datas) => {
+        if (datas == this.state.datasFixed) {
+            this.state.markersFixed = [];
+            if (this.state.filterType != 2) {
+                let thiz = this;
+                dic_.valuesIn(this.state.datasFixed).forEach(function (o, i) {
+                    let dis = GPSUtils.getGaodeDistance(thiz.state.region, o.coordinate);
+                    if ((thiz.state.filterStatus == 0 || (thiz.state.filterStatus == 1 && o.state == 1) || (thiz.state.filterStatus == 2 && o.state == 0) || (thiz.state.filterStatus == 3 && o.alarm == 1))
+                        && ((thiz.state.filterDist == 0 && dis <= 500) || (thiz.state.filterDist == 1 && dis <= 1000) || (thiz.state.filterDist == 2 && dis <= 2000) || (thiz.state.filterDist== 3 && dis<5000) || (thiz.state.filterDist==4&&dis<=10000) || (thiz.state.filterDist==5&&dis<=20000)))
+                    {
+                        thiz.state.markersFixed.push(
+                            {
+                                title: o.title,
+                                key: o.id_dev,
+                                coordinate:{
+                                    latitude: o.coordinate.latitude,
+                                    longitude: o.coordinate.longitude,
+                                },
+                            }
+                        );
+                    }
+                });
+                thiz.forceUpdate();
+            }
+        }else if (datas == this.state.datasGps){
+            this.state.markersGps = [];
+            if (this.state.filterType != 1) {
+                let thiz = this;
+                dic_.valuesIn(this.state.datasGps).forEach(function (o, i) {
+                    let dis = GPSUtils.getGaodeDistance(thiz.state.region, o.coordinate);
+                    if ((thiz.state.filterStatus == 0 || (thiz.state.filterStatus == 1 && o.state == 1) || (thiz.state.filterStatus == 2 && o.state == 0) || (thiz.state.filterStatus == 3 && o.alarm == 1))
+                        && ((thiz.state.filterDist == 0 && dis <= 500) || (thiz.state.filterDist == 1 && dis <= 1000) || (thiz.state.filterDist == 2 && dis <= 2000) || (thiz.state.filterDist== 3 && dis<5000) || (thiz.state.filterDist==4&&dis<=10000) || (thiz.state.filterDist==5&&dis<=20000)))
+                    {
+                        thiz.state.markersGps.push(
+                            {
+                                title: o.title,
+                                key: o.id_dev,
+                                coordinate:{
+                                    latitude: o.coordinate.latitude,
+                                    longitude: o.coordinate.longitude,
+                                },
+                            }
+                        );
+                    }
+                });
+                thiz.forceUpdate();
+            }
+        }
+    };
 
     renderNavigationLeftView() {
         return (
@@ -170,9 +277,24 @@ class LedMap extends NavigationPage {
                     showsMyLocationButton={false}
                     showsUserLocation={true}
                     initialRegion={this.state.region}
+                    onRegionChange={(r)=>{
+                        if (r && r.latitude) {
+                            this.state.region = r;
+                        }
+                    }}
                     //onPress={this.onMapPress}
                 >
                     {this.state.markersGps.map(marker => (
+                        <MapView.Marker
+                            title={marker.title}
+                            image={this.state.selectedIds.indexOf(marker.key+"") == -1 ? CarOnUnChecked : CarOnChecked}
+                            key={marker.key+""}
+                            identifier={marker.key+""}
+                            coordinate={marker.coordinate}
+                            onPress={(e)=>this._onClickMarker(e)}
+                        />
+                    ))}
+                    {this.state.markersFixed.map(marker => (
                         <MapView.Marker
                             title={marker.title}
                             image={this.state.selectedIds.indexOf(marker.key+"") == -1 ? FlagUnChecked : FlagChecked}
@@ -222,7 +344,11 @@ class LedMap extends NavigationPage {
     }
 
     _onDoneFilter = (data) => {
-
+        this.state.filterType = data.type;
+        this.state.filterDist = data.dist;
+        this.state.filterStatus =data.status;
+        this._filterMarkers(this.state.datasGps);
+        this._filterMarkers(this.state.datasFixed);
     };
 }
 

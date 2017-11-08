@@ -29,7 +29,7 @@ import ImageButton from '../../../widgets/ImageButton';
 import HttpApi from "../../../network/HttpApi";
 import PopAlert from "../../../widgets/PopAlertView";
 import YsWebSocket from "../../../network/YsWebSocket";
-import * as Utils from '../../../Utils/Utils';
+import {Utils, GPSUtils} from '../../../Utils/Utils';
 import {COLOR_NAV_BG} from "../../../constants/Colors";
 
 let ScreenHeight = Dimensions.get('window').height;

@@ -14,6 +14,49 @@ const pixelSize = (function() {
 const GPSUtils = {
     PI : 3.14159265358979324,
     x_pi : 3.14159265358979324 * 3000.0 / 180.0,
+    toRad: function(d) {  return d * Math.PI / 180; },
+    getGpsDistance: function(lat1, lng1, lat2, lng2) { //lat为纬度, lng为经度, 一定不要弄错
+        var dis = 0;
+        var radLat1 = this.toRad(lat1);
+        var radLat2 = this.toRad(lat2);
+        var deltaLat = radLat1 - radLat2;
+        var deltaLng = this.toRad(lng1) - this.toRad(lng2);
+        var dis = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(deltaLat / 2), 2) + Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(deltaLng / 2), 2)));
+        return dis * 6378137; // 单位米
+    },
+    getGaodeDistance: function (start, end) {
+        var d1 = 0.01745329251994329;
+        var d2 = start.longitude;
+        var d3 = start.latitude;
+        var d4 = end.longitude;
+        var d5 = end.latitude;
+        d2 *= d1;
+        d3 *= d1;
+        d4 *= d1;
+        d5 *= d1;
+        var d6 = Math.sin(d2);
+        var d7 = Math.sin(d3);
+        var d8 = Math.cos(d2);
+        var d9 = Math.cos(d3);
+        var d10 = Math.sin(d4);
+        var d11 = Math.sin(d5);
+        var d12 = Math.cos(d4);
+        var d13 = Math.cos(d5);
+        var arrayOfDouble1 = [];
+        var arrayOfDouble2 = [];
+        arrayOfDouble1.push(d9 * d8);
+        arrayOfDouble1.push(d9 * d6);
+        arrayOfDouble1.push(d7);
+        arrayOfDouble2.push(d13 * d12);
+        arrayOfDouble2.push(d13 * d10);
+        arrayOfDouble2.push(d11);
+        var d14 = Math.sqrt((arrayOfDouble1[0] - arrayOfDouble2[0]) * (arrayOfDouble1[0] - arrayOfDouble2[0]) +
+            (arrayOfDouble1[1] - arrayOfDouble2[1]) * (arrayOfDouble1[1] - arrayOfDouble2[1]) +
+            (arrayOfDouble1[2] - arrayOfDouble2[2]) * (arrayOfDouble1[2] - arrayOfDouble2[2]));
+
+        return(Math.asin(d14 / 2.0) * 12742001.579854401);
+    },
+
     delta : function (lat, lon) {
         // Krasovsky 1940
         //
@@ -188,4 +231,7 @@ let Utils = {
 
 };
 
-module.exports = Utils;
+module.exports = {
+    Utils,
+    GPSUtils
+};

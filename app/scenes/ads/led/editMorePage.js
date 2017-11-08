@@ -33,7 +33,7 @@ import PTRListView, {RefreshState} from '../../../widgets/PTRListView';
 import ImageButton from '../../../widgets/ImageButton';
 import MapView from 'react-native-maps';
 import flagPinkImg from '../../../assets/map/flag_red.png';
-import Utils from '../../../Utils/Utils';
+import {Utils, GPSUtils} from '../../../Utils/Utils';
 import WifiLedSettings from "./wifiLedSettings";
 import EditPcPage from '../led/editLedPc';
 import PasswordInput from "../../../widgets/PasswordInput";

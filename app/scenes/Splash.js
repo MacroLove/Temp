@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, Image} from "react-native";
 import Button from "react-native-button";
 import {Actions} from "react-native-router-flux";
 import * as Colors from '../constants/Colors';
-import Utils from '../Utils/Utils';
+import {Utils, GPSUtils} from '../Utils/Utils';
 import * as ViewKeys from '../constants/ViewKeys';
 import * as Apis from '../actions/apis';
 import { bindActionCreators } from 'redux';

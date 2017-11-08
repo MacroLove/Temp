@@ -27,7 +27,7 @@ import * as Modals from '../../../models/Models';
 import PopAlert from "../../../widgets/PopAlertView";
 import HttpApi from "../../../network/HttpApi";
 import YsWebSocket from "../../../network/YsWebSocket";
-import * as Utils from '../../../Utils/Utils';
+import {Utils, GPSUtils} from '../../../Utils/Utils';
 
 var array_ = require('lodash/array');
 var dic_ = require('lodash/object');

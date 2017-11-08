@@ -26,7 +26,7 @@ import ImageButton from '../../../widgets/ImageButton';
 import HttpApi from "../../../network/HttpApi";
 import PopAlert from "../../../widgets/PopAlertView";
 import YsWebSocket from "../../../network/YsWebSocket";
-import * as Utils from '../../../Utils/Utils';
+import {Utils, GPSUtils} from '../../../Utils/Utils';
 
 let ScreenHeight = Dimensions.get('window').height;
 let ScreenWidth = Dimensions.get('window').width;
